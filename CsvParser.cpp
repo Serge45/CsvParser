@@ -1,4 +1,3 @@
-#include "StdAfx.h"
 #include "CsvParser.h"
 #include <iostream>
 #include <fstream>
@@ -15,7 +14,7 @@ CsvParser::~CsvParser() {
 }
 
 bool CsvParser::read(const std::string &filePath) {
-    ifstream fileReader(filePath);
+    std::ifstream fileReader(filePath);
 
     if (!fileReader.is_open()) {
         return false;
@@ -43,14 +42,16 @@ bool CsvParser::read(const std::string &filePath) {
     return isSuccessful;
 }
 
-/*TODO: Almost completed, expect for execption handling.*/
+/*Check rdstate on each line only, not each cell.*/
 bool CsvParser::write(const std::string &filePath) {
     std::ofstream outputFileStream(filePath);
 
     if (!outputFileStream.is_open()) {
         return false;
     }
-    
+
+    std::ofstream::iostate writeState = std::ofstream::goodbit;
+
     for (auto line = readBuffer.cbegin(); line != readBuffer.cend(); ++line) {
         for (auto cell = line->cbegin(); cell != line->cend(); ++cell) {
             outputFileStream << *cell;
@@ -58,10 +59,20 @@ bool CsvParser::write(const std::string &filePath) {
                 outputFileStream << splitMark;
             }
         }
-        outputFileStream << std::endl;
-    }
+        writeState = (outputFileStream << std::endl).rdstate();
 
+        if ((writeState | std::ofstream::badbit) ||
+            (writeState | std::ofstream::failbit)) {
+            outputFileStream.close();
+            return false;
+        }
+    }
+    outputFileStream.close();
     return true;
+}
+
+std::vector<std::vector<std::string> > &CsvParser::rawData() {
+    return readBuffer;
 }
 
 CsvReadStatus CsvParser::readNextRow(std::istream &inputFileStream) {

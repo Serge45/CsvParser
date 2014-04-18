@@ -21,6 +21,7 @@ public:
 public:
     bool read(const std::string &filePath);
     bool write(const std::string &filePath);
+    std::vector<std::vector<std::string> > &rawData();
     virtual void parse();
 
 private:
