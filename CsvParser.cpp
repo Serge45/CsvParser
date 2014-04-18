@@ -61,8 +61,8 @@ bool CsvParser::write(const std::string &filePath) {
         }
         writeState = (outputFileStream << std::endl).rdstate();
 
-        if ((writeState | std::ofstream::badbit) ||
-            (writeState | std::ofstream::failbit)) {
+        if ((writeState & std::ofstream::badbit) ||
+            (writeState & std::ofstream::failbit)) {
             outputFileStream.close();
             return false;
         }
